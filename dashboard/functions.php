@@ -1,14 +1,15 @@
 <?php
+require_once __DIR__ . '/config.php';
 //Functions file
 //Application Name
 $app_name = 'airlines';
 //----------------------------------------------
-//Database connection data
-$host_name  = 'mysql.railway.internal';
-$username   = 'root';
-$password   = 'ljxFqKdlLXvpaeTChkwXBYiGFzwauiVf';
-$db_name    = 'railway';
-$port       = '3306';
+//Database connection data (نفس القيم في config.php — مشروع تجريبي)
+$host_name  = DB_HOST;
+$username   = DB_USER;
+$password   = DB_PASSWORD;
+$db_name    = DB_NAME;
+$port       = DB_PORT;
 //----------------------------------------------
 //Connect to database
 $db_connection = mysqli_connect($host_name, $username, $password, $db_name, $port);
