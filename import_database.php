@@ -13,12 +13,12 @@ echo "<body>";
 echo "<h1>🔄 استيراد قاعدة البيانات إلى Railway</h1>";
 
 try {
-    // بيانات الاتصال
-    $host = 'mysql.railway.internal';
-    $user = 'root';
-    $pass = 'ljxFqKdlLXvpaeTChkwXBYiGFzwauiVf';
-    $dbname = 'railway';
-    $port = 3306;
+    require_once __DIR__ . '/dashboard/config.php';
+    $host = DB_HOST;
+    $user = DB_USER;
+    $pass = DB_PASSWORD;
+    $dbname = DB_NAME;
+    $port = (int) DB_PORT;
 
     echo "<p>📡 جاري الاتصال بقاعدة البيانات...</p>";
     
