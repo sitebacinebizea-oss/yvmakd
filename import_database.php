@@ -24,11 +24,12 @@ try {
     
     // الاتصال بقاعدة البيانات باستخدام PDO
     $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
-    $pdo = new PDO($dsn, $user, $pass, [
+    $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
-    ]);
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+    ];
+    
+    $pdo = new PDO($dsn, $user, $pass, $options);
 
     echo "<p style='color: green;'>✅ تم الاتصال بنجاح!</p>";
 
@@ -96,7 +97,6 @@ try {
         // تحديث كل 10 استعلامات
         if (($success + $failed) % 10 == 0) {
             flush();
-            ob_flush();
         }
     }
 
