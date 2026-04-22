@@ -1,72 +1,118 @@
 <?php
-// ملف استيراد قاعدة البيانات إلى Railway
+// عرض جميع الأخطاء
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// بيانات الاتصال
-define('DB_HOST', 'mysql.railway.internal');
-define('DB_USER', 'root');
-define('DB_PASSWORD', 'ljxFqKdlLXvpaeTChkwXBYiGFzwauiVf');
-define('DB_NAME', 'railway');
-define('DB_PORT', 3306);
+echo "<!DOCTYPE html>";
+echo "<html dir='rtl'>";
+echo "<head><meta charset='UTF-8'><title>استيراد قاعدة البيانات</title></head>";
+echo "<body style='font-family: Arial; padding: 20px;'>";
 
-// الاتصال بقاعدة البيانات
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT);
+echo "<h1>🔄 استيراد قاعدة البيانات إلى Railway</h1>";
 
-// التحقق من الاتصال
-if ($mysqli->connect_error) {
-    die("فشل الاتصال: " . $mysqli->connect_error);
-}
+try {
+    // بيانات الاتصال
+    $host = 'mysql.railway.internal';
+    $user = 'root';
+    $pass = 'ljxFqKdlLXvpaeTChkwXBYiGFzwauiVf';
+    $dbname = 'railway';
+    $port = 3306;
 
-echo "تم الاتصال بنجاح!<br><br>";
-
-// تعيين ترميز UTF8
-$mysqli->set_charset("utf8mb4");
-
-// قراءة ملف SQL
-$sql_file = __DIR__ . '/database.sql';
-
-if (!file_exists($sql_file)) {
-    die("ملف SQL غير موجود! الرجاء وضع ملف database.sql في نفس المجلد.");
-}
-
-$sql = file_get_contents($sql_file);
-
-// تقسيم الاستعلامات
-$queries = explode(';', $sql);
-
-$success = 0;
-$failed = 0;
-
-echo "جاري استيراد قاعدة البيانات...<br><br>";
-
-foreach ($queries as $query) {
-    $query = trim($query);
+    echo "<p>📡 جاري الاتصال بقاعدة البيانات...</p>";
     
-    // تجاهل الاستعلامات الفارغة والتعليقات
-    if (empty($query) || substr($query, 0, 2) == '--' || substr($query, 0, 2) == '/*') {
-        continue;
+    // الاتصال بقاعدة البيانات
+    $mysqli = new mysqli($host, $user, $pass, $dbname, $port);
+
+    // التحقق من الاتصال
+    if ($mysqli->connect_error) {
+        throw new Exception("فشل الاتصال: " . $mysqli->connect_error);
     }
+
+    echo "<p style='color: green;'>✅ تم الاتصال بنجاح!</p>";
+
+    // تعيين ترميز UTF8
+    $mysqli->set_charset("utf8mb4");
+
+    // قراءة ملف SQL
+    $sql_file = __DIR__ . '/database.sql';
+
+    if (!file_exists($sql_file)) {
+        throw new Exception("ملف SQL غير موجود! المسار: " . $sql_file);
+    }
+
+    echo "<p>📄 تم العثور على ملف SQL</p>";
     
-    if ($mysqli->query($query)) {
-        $success++;
-        echo "✅ تم التنفيذ بنجاح<br>";
-    } else {
-        $failed++;
-        echo "❌ خطأ: " . $mysqli->error . "<br>";
+    $sql = file_get_contents($sql_file);
+
+    // تقسيم الاستعلامات
+    $queries = array();
+    $temp_query = '';
+    
+    foreach (explode("\n", $sql) as $line) {
+        // تجاهل التعليقات
+        if (substr(trim($line), 0, 2) == '--' || trim($line) == '' || substr(trim($line), 0, 2) == '/*') {
+            continue;
+        }
+        
+        $temp_query .= $line . "\n";
+        
+        if (substr(trim($line), -1, 1) == ';') {
+            $queries[] = trim($temp_query);
+            $temp_query = '';
+        }
     }
+
+    $success = 0;
+    $failed = 0;
+
+    echo "<h3>⚙️ جاري تنفيذ الاستعلامات...</h3>";
+
+    foreach ($queries as $query) {
+        $query = trim($query);
+        
+        if (empty($query)) {
+            continue;
+        }
+        
+        // عرض أول 100 حرف من الاستعلام
+        $preview = substr($query, 0, 100);
+        
+        if ($mysqli->query($query)) {
+            $success++;
+            echo "<div style='color: green; margin: 5px 0;'>✅ نجح: " . htmlspecialchars($preview) . "...</div>";
+        } else {
+            $failed++;
+            echo "<div style='color: red; margin: 5px 0;'>❌ فشل: " . htmlspecialchars($preview) . "...<br>الخطأ: " . $mysqli->error . "</div>";
+        }
+    }
+
+    echo "<hr>";
+    echo "<h3>📊 النتائج:</h3>";
+    echo "<p>✅ عدد الاستعلامات الناجحة: <strong>$success</strong></p>";
+    echo "<p>❌ عدد الاستعلامات الفاشلة: <strong>$failed</strong></p>";
+    echo "<hr>";
+
+    // عرض الجداول الموجودة
+    $result = $mysqli->query("SHOW TABLES");
+    
+    if ($result) {
+        echo "<h3>📁 الجداول الموجودة في قاعدة البيانات:</h3>";
+        echo "<ul>";
+        while ($row = $result->fetch_array()) {
+            echo "<li>" . $row[0] . "</li>";
+        }
+        echo "</ul>";
+    }
+
+    $mysqli->close();
+    echo "<h2 style='color: green;'>🎉 تم الانتهاء من عملية الاستيراد!</h2>";
+    
+} catch (Exception $e) {
+    echo "<div style='background: #ffcccc; padding: 15px; border: 1px solid red; border-radius: 5px;'>";
+    echo "<h3 style='color: red;'>❌ حدث خطأ:</h3>";
+    echo "<p>" . htmlspecialchars($e->getMessage()) . "</p>";
+    echo "</div>";
 }
 
-echo "<br>=====================<br>";
-echo "✅ عدد الاستعلامات الناجحة: $success<br>";
-echo "❌ عدد الاستعلامات الفاشلة: $failed<br>";
-echo "=====================<br><br>";
-
-// عرض الجداول الموجودة
-$result = $mysqli->query("SHOW TABLES");
-echo "<h3>الجداول الموجودة في قاعدة البيانات:</h3>";
-while ($row = $result->fetch_array()) {
-    echo "📁 " . $row[0] . "<br>";
-}
-
-$mysqli->close();
-echo "<br><h2 style='color: green;'>✅ تم استيراد قاعدة البيانات بنجاح!</h2>";
+echo "</body></html>";
 ?>
