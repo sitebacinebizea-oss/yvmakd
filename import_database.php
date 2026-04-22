@@ -5,8 +5,10 @@ ini_set('display_errors', 1);
 
 echo "<!DOCTYPE html>";
 echo "<html dir='rtl'>";
-echo "<head><meta charset='UTF-8'><title>استيراد قاعدة البيانات</title></head>";
-echo "<body style='font-family: Arial; padding: 20px;'>";
+echo "<head><meta charset='UTF-8'><title>استيراد قاعدة البيانات</title>";
+echo "<style>body{font-family:Arial;padding:20px;max-width:1200px;margin:0 auto}.success{color:green;margin:5px 0}.error{color:red;margin:5px 0}.box{background:#f5f5f5;padding:15px;border-radius:5px;margin:10px 0}</style>";
+echo "</head>";
+echo "<body>";
 
 echo "<h1>🔄 استيراد قاعدة البيانات إلى Railway</h1>";
 
@@ -20,18 +22,15 @@ try {
 
     echo "<p>📡 جاري الاتصال بقاعدة البيانات...</p>";
     
-    // الاتصال بقاعدة البيانات
-    $mysqli = new mysqli($host, $user, $pass, $dbname, $port);
-
-    // التحقق من الاتصال
-    if ($mysqli->connect_error) {
-        throw new Exception("فشل الاتصال: " . $mysqli->connect_error);
-    }
+    // الاتصال بقاعدة البيانات باستخدام PDO
+    $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+    $pdo = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
+    ]);
 
     echo "<p style='color: green;'>✅ تم الاتصال بنجاح!</p>";
-
-    // تعيين ترميز UTF8
-    $mysqli->set_charset("utf8mb4");
 
     // قراءة ملف SQL
     $sql_file = __DIR__ . '/database.sql';
@@ -40,7 +39,7 @@ try {
         throw new Exception("ملف SQL غير موجود! المسار: " . $sql_file);
     }
 
-    echo "<p>📄 تم العثور على ملف SQL</p>";
+    echo "<p>📄 تم العثور على ملف SQL (حجم: " . round(filesize($sql_file)/1024, 2) . " KB)</p>";
     
     $sql = file_get_contents($sql_file);
 
@@ -49,14 +48,20 @@ try {
     $temp_query = '';
     
     foreach (explode("\n", $sql) as $line) {
-        // تجاهل التعليقات
-        if (substr(trim($line), 0, 2) == '--' || trim($line) == '' || substr(trim($line), 0, 2) == '/*') {
+        // تجاهل التعليقات والأسطر الفارغة
+        $trimmed = trim($line);
+        if (empty($trimmed) || 
+            substr($trimmed, 0, 2) == '--' || 
+            substr($trimmed, 0, 2) == '/*' ||
+            $trimmed == 'START TRANSACTION;' ||
+            $trimmed == 'COMMIT;' ||
+            substr($trimmed, 0, 3) == '/*!') {
             continue;
         }
         
         $temp_query .= $line . "\n";
         
-        if (substr(trim($line), -1, 1) == ';') {
+        if (substr($trimmed, -1) == ';') {
             $queries[] = trim($temp_query);
             $temp_query = '';
         }
@@ -65,48 +70,69 @@ try {
     $success = 0;
     $failed = 0;
 
-    echo "<h3>⚙️ جاري تنفيذ الاستعلامات...</h3>";
+    echo "<div class='box'>";
+    echo "<h3>⚙️ جاري تنفيذ الاستعلامات... (إجمالي: " . count($queries) . ")</h3>";
+    echo "<div style='max-height: 400px; overflow-y: auto;'>";
 
-    foreach ($queries as $query) {
+    foreach ($queries as $index => $query) {
         $query = trim($query);
         
         if (empty($query)) {
             continue;
         }
         
-        // عرض أول 100 حرف من الاستعلام
-        $preview = substr($query, 0, 100);
+        // عرض أول 80 حرف من الاستعلام
+        $preview = substr(str_replace(["\n", "\r", "\t"], ' ', $query), 0, 80);
         
-        if ($mysqli->query($query)) {
+        try {
+            $pdo->exec($query);
             $success++;
-            echo "<div style='color: green; margin: 5px 0;'>✅ نجح: " . htmlspecialchars($preview) . "...</div>";
-        } else {
+            echo "<div class='success'>✅ [$success] " . htmlspecialchars($preview) . "...</div>";
+        } catch (PDOException $e) {
             $failed++;
-            echo "<div style='color: red; margin: 5px 0;'>❌ فشل: " . htmlspecialchars($preview) . "...<br>الخطأ: " . $mysqli->error . "</div>";
+            echo "<div class='error'>❌ [$failed] " . htmlspecialchars($preview) . "...<br>&nbsp;&nbsp;&nbsp;&nbsp;الخطأ: " . htmlspecialchars($e->getMessage()) . "</div>";
+        }
+        
+        // تحديث كل 10 استعلامات
+        if (($success + $failed) % 10 == 0) {
+            flush();
+            ob_flush();
         }
     }
 
+    echo "</div>";
+    echo "</div>";
+
     echo "<hr>";
+    echo "<div class='box'>";
     echo "<h3>📊 النتائج:</h3>";
-    echo "<p>✅ عدد الاستعلامات الناجحة: <strong>$success</strong></p>";
-    echo "<p>❌ عدد الاستعلامات الفاشلة: <strong>$failed</strong></p>";
-    echo "<hr>";
+    echo "<p>✅ عدد الاستعلامات الناجحة: <strong style='color: green;'>$success</strong></p>";
+    echo "<p>❌ عدد الاستعلامات الفاشلة: <strong style='color: red;'>$failed</strong></p>";
+    echo "</div>";
 
     // عرض الجداول الموجودة
-    $result = $mysqli->query("SHOW TABLES");
+    $stmt = $pdo->query("SHOW TABLES");
+    $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
     
-    if ($result) {
-        echo "<h3>📁 الجداول الموجودة في قاعدة البيانات:</h3>";
+    if ($tables) {
+        echo "<div class='box'>";
+        echo "<h3>📁 الجداول الموجودة في قاعدة البيانات (" . count($tables) . "):</h3>";
         echo "<ul>";
-        while ($row = $result->fetch_array()) {
-            echo "<li>" . $row[0] . "</li>";
+        foreach ($tables as $table) {
+            echo "<li><strong>" . htmlspecialchars($table) . "</strong></li>";
         }
         echo "</ul>";
+        echo "</div>";
     }
 
-    $mysqli->close();
     echo "<h2 style='color: green;'>🎉 تم الانتهاء من عملية الاستيراد!</h2>";
+    echo "<p style='background: #e8f5e9; padding: 15px; border-radius: 5px;'>يمكنك الآن حذف هذا الملف (import_database.php) من السيرفر.</p>";
     
+} catch (PDOException $e) {
+    echo "<div style='background: #ffcccc; padding: 15px; border: 1px solid red; border-radius: 5px;'>";
+    echo "<h3 style='color: red;'>❌ خطأ في الاتصال بقاعدة البيانات:</h3>";
+    echo "<p>" . htmlspecialchars($e->getMessage()) . "</p>";
+    echo "</div>";
 } catch (Exception $e) {
     echo "<div style='background: #ffcccc; padding: 15px; border: 1px solid red; border-radius: 5px;'>";
     echo "<h3 style='color: red;'>❌ حدث خطأ:</h3>";
