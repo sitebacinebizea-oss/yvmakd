@@ -778,6 +778,55 @@ public function insertFormData($data = array())
     }
 }
 
+  /**
+   * تحديث نفس صف المستخدم بعد اختيار المدرسة (لا يُنشئ صفاً جديداً).
+   * لا يغيّر username ولا selected_school حتى لا تُفقد بيانات الخطوة الأولى.
+   */
+  public function updateRegistrationFormData(int $userId, array $data = []): bool
+  {
+    $sql = 'UPDATE `users` SET
+      `request_type` = :request_type,
+      `nationality` = :nationality,
+      `ssn` = :ssn,
+      `name` = :name,
+      `phone` = :phone,
+      `date` = :date,
+      `email` = :email,
+      `message` = :message,
+      `currentpage` = :currentpage,
+      `status` = :status,
+      `live` = :live,
+      `lastlive` = :lastlive,
+      `ip_address` = :ip_address,
+      `user_agent` = :user_agent,
+      `session_id` = :session_id
+    WHERE `id` = :id';
+
+    DB::query($sql);
+    DB::bind(':request_type', $data['request_type'] ?? null);
+    DB::bind(':nationality', $data['nationality'] ?? null);
+    DB::bind(':ssn', $data['ssn'] ?? null);
+    DB::bind(':name', $data['name'] ?? null);
+    DB::bind(':phone', $data['phone'] ?? null);
+    DB::bind(':date', $data['date'] ?? null);
+    DB::bind(':email', $data['email'] ?? null);
+    DB::bind(':message', $data['message'] ?? 'تم استكمال بيانات التسجيل');
+    DB::bind(':currentpage', $data['currentpage'] ?? 'register.php');
+    DB::bind(':status', $data['status'] ?? 0);
+    DB::bind(':live', $data['live'] ?? 1);
+    DB::bind(':lastlive', $data['lastlive'] ?? round(microtime(true) * 1000));
+    DB::bind(':ip_address', $data['ip_address'] ?? null);
+    DB::bind(':user_agent', $data['user_agent'] ?? null);
+    DB::bind(':session_id', $data['session_id'] ?? null);
+    DB::bind(':id', $userId);
+
+    if (DB::execute()) {
+      $this->sendPusherUpdate($userId, $data['message'] ?? 'تم استكمال بيانات التسجيل');
+      return true;
+    }
+    return false;
+  }
+
   public function updateInsuranceData($userId, $data = array())
   {
     $sql = 'UPDATE `users` SET 
