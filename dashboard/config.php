@@ -1,49 +1,91 @@
 <?php
 /**
- * نفس أسلوب «مشروع صديقي»: إن وُجد MYSQL_URL يُستخرج منه كل شيء (كما يفعل Railway عادة).
- * وإلا تُستخدم MYSQLHOST / MYSQLUSER / MYSQLPASSWORD / MYSQLDATABASE / MYSQLPORT.
- * + قراءة من $_SERVER و$_ENV لأن بعض إعدادات PHP لا تعيد getenv فقط.
+ * Railway: غالباً MYSQL_URL + متغيرات منفصلة.
+ * كلمة المرور الصريحة MYSQLPASSWORD أدق من استخراجها من الرابط إن كان الرابط قديماً في خدمة التطبيق.
  */
 function railway_env(string $key): string
 {
     $v = getenv($key);
     if ($v !== false && $v !== '') {
-        return $v;
+        return trim((string) $v);
     }
     if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') {
-        return (string) $_SERVER[$key];
+        return trim((string) $_SERVER[$key]);
     }
     if (isset($_ENV[$key]) && $_ENV[$key] !== '') {
-        return (string) $_ENV[$key];
+        return trim((string) $_ENV[$key]);
     }
     return '';
 }
 
-// على Railway: MYSQL_URL داخلي. للتجربة من جهازك بدون MYSQL_URL استخدم MYSQL_PUBLIC_URL من لوحة MySQL.
 $mysql_url = railway_env('MYSQL_URL');
 if ($mysql_url === '') {
     $mysql_url = railway_env('MYSQL_PUBLIC_URL');
 }
 
-if ($mysql_url !== '') {
-    $url_parts = parse_url($mysql_url);
-    if (is_array($url_parts) && !empty($url_parts['host'])) {
-        define('DB_HOST', (string) $url_parts['host']);
-        define('DB_PORT', isset($url_parts['port']) ? (string) (int) $url_parts['port'] : '3306');
-        define('DB_USER', (string) ($url_parts['user'] ?? 'root'));
-        $rawPass = $url_parts['pass'] ?? '';
-        define('DB_PASSWORD', $rawPass !== '' ? rawurldecode((string) $rawPass) : '');
-        define('DB_NAME', isset($url_parts['path']) ? ltrim((string) $url_parts['path'], '/') : 'railway');
+$host = '';
+$user = '';
+$pass = '';
+$name = '';
+$port = '3306';
+
+if ($mysql_url !== '' && preg_match('#^mysql://#i', $mysql_url)) {
+    $p = parse_url($mysql_url);
+    if (is_array($p) && !empty($p['host'])) {
+        $host = (string) $p['host'];
+        $port = isset($p['port']) ? (string) (int) $p['port'] : '3306';
+        $user = (string) ($p['user'] ?? 'root');
+        $rp = $p['pass'] ?? '';
+        $pass = $rp !== '' ? rawurldecode((string) $rp) : '';
+        $name = isset($p['path']) ? ltrim((string) $p['path'], '/') : '';
     }
 }
 
-if (!defined('DB_HOST')) {
-    define('DB_HOST', railway_env('MYSQLHOST') ?: 'localhost');
-    define('DB_PORT', railway_env('MYSQLPORT') ?: '3306');
-    define('DB_USER', railway_env('MYSQLUSER') ?: 'root');
-    define('DB_PASSWORD', railway_env('MYSQLPASSWORD') ?: railway_env('MYSQL_ROOT_PASSWORD'));
-    define('DB_NAME', railway_env('MYSQLDATABASE') ?: railway_env('MYSQL_DATABASE') ?: 'railway');
+// المتغيرات المنفصلة تطغى على ما جاء من الرابط (تفادي Access denied بسبب MYSQL_URL غير محدّث)
+$eh = railway_env('MYSQLHOST');
+if ($eh !== '') {
+    $host = $eh;
 }
+$eu = railway_env('MYSQLUSER');
+if ($eu !== '') {
+    $user = $eu;
+}
+$ep = railway_env('MYSQLPASSWORD');
+if ($ep !== '') {
+    $pass = $ep;
+} else {
+    $epr = railway_env('MYSQL_ROOT_PASSWORD');
+    if ($epr !== '') {
+        $pass = $epr;
+    }
+}
+$en = railway_env('MYSQLDATABASE');
+if ($en === '') {
+    $en = railway_env('MYSQL_DATABASE');
+}
+if ($en !== '') {
+    $name = $en;
+}
+$eport = railway_env('MYSQLPORT');
+if ($eport !== '') {
+    $port = $eport;
+}
+
+if ($host === '') {
+    $host = 'localhost';
+}
+if ($user === '') {
+    $user = 'root';
+}
+if ($name === '') {
+    $name = 'railway';
+}
+
+define('DB_HOST', $host);
+define('DB_USER', $user);
+define('DB_PASSWORD', $pass);
+define('DB_NAME', $name);
+define('DB_PORT', $port);
 
 define('DB_CHARSET', 'utf8mb4');
 define('DB_COLLATE', '');
