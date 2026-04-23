@@ -1,7 +1,7 @@
 <?php
 /**
- * Railway: غالباً MYSQL_URL + متغيرات منفصلة.
- * كلمة المرور الصريحة MYSQLPASSWORD أدق من استخراجها من الرابط إن كان الرابط قديماً في خدمة التطبيق.
+ * Railway: أولاً MYSQL_ROOT_PASSWORD (غالباً تطابق MySQL الحقيقي)، ثم MYSQLPASSWORD، ثم من MYSQL_URL.
+ * يصلح حالة لوحة yvmakd حيث MYSQLPASSWORD قديمة و MYSQL_ROOT_PASSWORD أو الرابط العام أحدث.
  */
 function railway_env(string $key): string
 {
@@ -50,14 +50,12 @@ $eu = railway_env('MYSQLUSER');
 if ($eu !== '') {
     $user = $eu;
 }
+$epr = railway_env('MYSQL_ROOT_PASSWORD');
 $ep = railway_env('MYSQLPASSWORD');
-if ($ep !== '') {
+if ($epr !== '') {
+    $pass = $epr;
+} elseif ($ep !== '') {
     $pass = $ep;
-} else {
-    $epr = railway_env('MYSQL_ROOT_PASSWORD');
-    if ($epr !== '') {
-        $pass = $epr;
-    }
 }
 $en = railway_env('MYSQLDATABASE');
 if ($en === '') {
