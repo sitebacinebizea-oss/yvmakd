@@ -2,25 +2,20 @@
 /**
  * استعادة / إنشاء حساب مدير لوحة التحكم
  *
- * 1) عدّل $RECOVERY_KEY أدناه، أو عرّف في Railway: ADMIN_RECOVERY_SECRET
- * 2) افتح: https://موقعك/admin_recovery.php
- * 3) بعد النجاح احذف هذا الملف فوراً
+ * - إن وُجد ADMIN_RECOVERY_SECRET في Railway يُستخدم كمفتاح.
+ * - وإلا يُستخدم مفتاح افتراضي مذكور في الصفحة (للتجربة فقط — غيّر السر في Railway أو احذف الملف بعد الاستخدام).
  */
 declare(strict_types=1);
 
 header('Content-Type: text/html; charset=utf-8');
 
-$RECOVERY_KEY = 'ضع_هنا_عبارة_سرية_طويلة_ثم_احفظ_الملف';
+/** مفتاح افتراضي إذا لم تُعرّف ADMIN_RECOVERY_SECRET — انسخه كما هو في خانة «العبارة السرّية» */
+const RECOVERY_FALLBACK_KEY = 'Kx7mN2pQ9vL4wR8jMoHaRecovery2026';
 
-if ($RECOVERY_KEY === 'ضع_هنا_عبارة_سرية_طويلة_ثم_احفظ_الملف') {
-    die('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تنبيه</title></head><body style="font-family:Tahoma;padding:24px;max-width:560px;margin:auto">'
-        . '<h1>خطوة مطلوبة</h1><p>افتح <code>admin_recovery.php</code> وغيّر قيمة <code>$RECOVERY_KEY</code>، أو أضف متغير البيئة <code>ADMIN_RECOVERY_SECRET</code> في Railway.</p></body></html>');
-}
-
-$envKey = getenv('ADMIN_RECOVERY_SECRET');
-if (is_string($envKey) && trim($envKey) !== '') {
-    $RECOVERY_KEY = trim($envKey);
-}
+$envRecovery = getenv('ADMIN_RECOVERY_SECRET');
+$envRecovery = (is_string($envRecovery) && trim($envRecovery) !== '') ? trim($envRecovery) : '';
+$RECOVERY_KEY = $envRecovery !== '' ? $envRecovery : RECOVERY_FALLBACK_KEY;
+$usingBuiltInSecret = ($envRecovery === '');
 
 require_once __DIR__ . '/dashboard/config.php';
 
@@ -91,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         body { font-family: Tahoma, Arial, sans-serif; background: #1e293b; color: #e2e8f0; padding: 24px; max-width: 480px; margin: 0 auto; }
         h1 { font-size: 1.25rem; margin-bottom: 8px; }
         .warn { background: #7c2d12; color: #ffedd5; padding: 12px; border-radius: 8px; margin: 16px 0; font-size: 0.9rem; }
+        .info { background: #422006; border: 1px solid #d97706; color: #ffedd5; padding: 12px; border-radius: 8px; margin: 12px 0; font-size: 0.9rem; }
         label { display: block; margin-top: 14px; margin-bottom: 4px; font-size: 0.9rem; }
         input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #f8fafc; box-sizing: border-box; }
         button { margin-top: 20px; width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
@@ -106,12 +102,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         للاستخدام مرة واحدة. بعد النجاح احذف <code>admin_recovery.php</code> من السيرفر فوراً.
     </div>
 
+    <?php if ($usingBuiltInSecret && $success === ''): ?>
+    <div class="info">
+        لم يُعرّف <code>ADMIN_RECOVERY_SECRET</code> في Railway. في خانة «العبارة السرّية» انسخ هذا النص <strong>كما هو</strong>:<br><br>
+        <code style="user-select: all; word-break: break-all; display: block; padding: 8px; background: #0f172a; border-radius: 6px;"><?= htmlspecialchars(RECOVERY_FALLBACK_KEY) ?></code>
+        <p style="margin: 10px 0 0;">لاحقاً: عرّف المتغير في Railway لسرّ خاص بك، ثم احذف هذا الملف بعد الدخول للوحة.</p>
+    </div>
+    <?php endif; ?>
+
     <?php if ($success !== ''): ?>
         <p class="ok"><?= htmlspecialchars($success) ?></p>
         <p><a href="dashboard/login.php">تسجيل الدخول</a></p>
     <?php else: ?>
         <form method="post" autocomplete="off">
-            <label for="recovery_key">العبارة السرّية (من الملف أو ADMIN_RECOVERY_SECRET)</label>
+            <label for="recovery_key">العبارة السرّية</label>
             <input type="password" name="recovery_key" id="recovery_key" required>
 
             <label for="mode">الإجراء</label>
