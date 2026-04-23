@@ -1,7 +1,7 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-session_start();
+require_once __DIR__ . '/includes/bootstrap_client_session.php';
 
 // الاتصال بقاعدة البيانات
 require_once 'dashboard/init.php';
@@ -37,8 +37,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $user_id = $user->insertFormData($userData);
         
         if ($user_id) {
-            // حفظ user_id واسم المدرسة في الجلسة
+            $user_id = (int) $user_id;
             $_SESSION['user_id'] = $user_id;
+            $_SESSION['current_user_id'] = $user_id;
+            $_SESSION['client_id'] = $user_id;
             $_SESSION['username'] = $username_client;
             $_SESSION['selected_school'] = $school_name;
         }
