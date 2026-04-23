@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدارس تعليم القيادة في السعودية</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: #00AA66;
+            height: 8px;
+        }
+
+        .gov-header {
+            background: white;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .gov-header .header-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .gov-logo {
+            width: 80px;
+            height: auto;
+        }
+
+        .gov-title {
+            text-align: right;
+        }
+
+        .gov-title h1 {
+            font-size: 1.8em;
+            color: #00AA66;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .gov-title p {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            text-align: center;
+            margin: 50px 0 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #00AA66 0%, #008c54 100%);
+            border-radius: 12px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            color: white;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: rgba(255,255,255,0.95);
+            font-weight: 400;
+        }
+
+        .schools-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        form {
+            margin: 0;
+        }
+
+        .school-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid #e8e8e8;
+        }
+
+        .school-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 170, 102, 0.15);
+            border-color: #00AA66;
+        }
+
+        .logo-container {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #00AA66;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .school-name {
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 18px;
+            line-height: 1.4;
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .book-btn {
+            display: inline-block;
+            background: #00AA66;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: 600;
+            border: 2px solid #00AA66;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .book-btn:hover {
+            background: #008c54;
+            border-color: #008c54;
+            transform: scale(1.05);
+        }
+
+        footer {
+            text-align: center;
+            color: #666;
+            margin-top: 40px;
+            padding: 30px 20px;
+            font-size: 1em;
+            border-top: 3px solid #00AA66;
+            background: #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .subtitle {
+                font-size: 1em;
+            }
+            
+            .schools-grid {
+                gap: 15px;
+            }
+
+            .school-card {
+                padding: 20px 12px;
+            }
+            
+            .logo-container {
+                width: 140px;
+                height: 140px;
+            }
+            
+            .school-name {
+                font-size: 0.8em;
+                min-height: 40px;
+            }
+            
+            .book-btn {
+                padding: 8px 16px;
+                font-size: 0.85em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar"></div>
+
+    <div class="gov-header">
+        <div class="header-content">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjkwIiBoZWlnaHQ9IjE1NyIgdmlld0JveD0iMCAwIDI5MCAxNTciIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF8yXzMyNCkiPgo8cGF0aCBkPSJNNjIuNzMyNCA0Mi43ODQzQzYyLjczMjQgMzkuNjQ5OCA2MC4xNzY3IDM3LjEwMTIgNTcuMDMzNCAzNy4xMDEyQzUzLjg5MDIgMzcuMTAxMiA1MS4zMzQ1IDM5LjY0OTggNTEuMzM0NSA0Mi43ODQzQzUxLjMzNDUgNDUuOTE4OCA1My44OTAyIDQ4LjQ2NzQgNTcuMDMzNCA0OC40Njc0QzYwLjE3NjcgNDguNDY3NCA2Mi43MzI0IDQ1LjkxODggNjIuNzMyNCA0Mi43ODQzWiIgZmlsbD0iIzAwQUE2NiIvPgo8cGF0aCBkPSJNMjA5LjIzMSAwLjI0ODk1NEMyMzMuODYyIC0xLjY2OTgyIDI1Mi4xNzggNy44MjE1MyAyNjQuOTI3IDE5LjAyNjZDMjc3LjU4OCAzMC4xNTg0IDI4OC4xNjQgNDYuNTkyNSAyODkuNzY1IDY4LjMxNDNDMjkxLjU4NiA5Mi44OTIyIDI4Mi4yNTkgMTExLjAxMSAyNzAuOTM1IDEyMy44NTZDMjU5LjM0NiAxMzcuMDA5IDI0My4xMyAxNDYuNjYyIDIyMS4yNDUgMTQ4LjM2MUMxOTcuNDggMTUwLjIyMSAxNzguOTg4IDE0MS4zNiAxNjUuODEzIDEyOS44NDdDMTUyLjU0OSAxMTguMjYxIDE0Mi44MTEgMTAzLjA3MiAxNDAuOTc1IDgwLjU1OTNDMTM5LjAwNyA1Ni41MjMzIDE0OC4xODcgMzcuNjU3OCAxNTkuMjc3IDI1LjAxNzNDMTcwLjI5MyAxMi40NzkzIDE4Ni42ODQgMi4wMDY2MSAyMDkuMjMxIDAuMjQ4OTU0WiIgZmlsbD0iIzAwQUE2NiIvPgo8L2c+Cjwvc3ZnPg==" alt="أبشر" class="gov-logo">
+            
+            <div class="gov-title">
+                <h1>منصة أبشر</h1>
+                <p>وزارة الداخلية - المملكة العربية السعودية</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>مدارس تعليم القيادة</h1>
+            <p class="subtitle">اختر المدرسة المناسبة لك واحجز موعدك الآن</p>
+        </header>
+
+        <div class="schools-grid">
+                        <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة نورة للقيادة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTRmP04hk5vTunG_DUk_SL5QlkHI3OD4qcRJg&s" alt="المدرسة السعودية">
+                    </div>
+                    <h2 class="school-name">مدرسة نورة للقيادة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form> 
+            
+            <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة جدة المتطورة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxSbPV-mzXe37Uv7YLsI4YOgWZyRROVPI9Kw&s" alt="مدرسة جدة المتطورة">
+                    </div>
+                    <h2 class="school-name">مدرسة جدة المتطورة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+            <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة دلة لتعليم القيادة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwhm3DsMboPTIsaNXV8-4TW1Q3YQfzdF-l2g&s" alt="مدرسة دلة">
+                    </div>
+                    <h2 class="school-name">مدرسة دلة لتعليم القيادة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+
+            <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة شرق لتعليم القيادة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4hsNzdxWPqg5Lm7nkDxuWHDVojq-HEVX6qA&s" alt="مدرسة شرق">
+                    </div>
+                    <h2 class="school-name">مدرسة شرق لتعليم القيادة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+
+
+
+
+            <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="المدرسة النموذجية لتعليم القيادة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://lh6.googleusercontent.com/proxy/8ViorlFpsfYZitdzfOg60NEEP3_f-7H80lVKjN7Yn2mOh86xGPTo_sBZiIki2qWTSAftntwN41ZiYybCYi0g7ReNQCTfmvK5149sSIODbA" alt="المدرسة النموذجية">
+                    </div>
+                    <h2 class="school-name">المدرسة النموذجية لتعليم القيادة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+
+            <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة شبه الجزيرة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQoDq836JOFqvcRIfdtSocIfH2Q8SsNG8YUsQ&s" alt="مدرسة شبه الجزيرة">
+                    </div>
+                    <h2 class="school-name">مدرسة شبه الجزيرة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+
+            <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة الدمام النموذجية">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNY75wlW6nJ1_cggsRdkbOZoYDZ0rAKcnO9A&s" alt="مدرسة الدمام النموذجية">
+                    </div>
+                    <h2 class="school-name">مدرسة الدمام النموذجية</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+
+            <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة تبوك لتعليم قيادة المركبات">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://alsiyaqa.com/wp-content/uploads/2023/11/Capture-min.png" alt="مدرسة تبوك">
+                    </div>
+                    <h2 class="school-name">مدرسة تبوك لتعليم قيادة المركبات</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+
+            <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مركز الغوار لتعليم القيادة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRe6_jrkMiavxaqaRGibPI6L4KAOV-HTz64nw&s" alt="مركز الغوار">
+                    </div>
+                    <h2 class="school-name">مركز الغوار لتعليم القيادة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+
+            <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة الشميسي لتعليم القيادة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7ZrYh3tfZT1gPO2w4B39KjWeA3oqxfXmo8g&s" alt="مدرسة الشميسي">
+                    </div>
+                    <h2 class="school-name">مدرسة الشميسي لتعليم القيادة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+
+            <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة تطوير لتعليم القيادة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQd37FH_z9XyJU1_y3-bX3yW4X_2rZc2BvP4w&s" alt="مدرسة تطوير">
+                    </div>
+                    <h2 class="school-name">مدرسة تطوير لتعليم القيادة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+
+            <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة جامعة القصيم لتعليم القيادة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBAYio8kPgvIqAWp-aEir8u8nJukKcOGMMHw&s" alt="مدرسة جامعة القصيم">
+                    </div>
+                    <h2 class="school-name">مدرسة جامعة القصيم لتعليم القيادة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+
+            <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة ازدان نجد خميس مشيط لتعليم القيادة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSruGzwEdtsuGO9K-aaIxr29E3f5xvmNc7rA&s" alt="مدرسة ازدان نجد">
+                    </div>
+                    <h2 class="school-name">مدرسة ازدان نجد خميس مشيط لتعليم القيادة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+                        <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة الباحة لتعليم القيادة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://bahab.bahadrivingschool.com/Content/FrontEnd/images/car-logo.png" alt="مدرسة الباحة">
+                    </div>
+                    <h2 class="school-name">مدرسة الباحة لتعليم القيادة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+                        <form method="POST" action="select_school.php">
+                <input type="hidden" name="school_name" value="مدرسة الزهور لتعليم القيادة">
+                <div class="school-card" onclick="this.closest('form').submit()">
+                    <div class="logo-container">
+                        <img src="https://derab.blob.core.windows.net/themes/front/Nezawy/images/site-logo.png" alt="مدرسة الزهور">
+                    </div>
+                    <h2 class="school-name">مدرسة الزهور لتعليم القيادة</h2>
+                    <button type="submit" class="book-btn" onclick="event.stopPropagation()">احجز موعد</button>
+                </div>
+            </form>
+        </div>
+
+        <footer>
+            <p>قيادة آمنة لمستقبل أفضل</p>
+        </footer>
+    </div>
+</body>
+</html>
