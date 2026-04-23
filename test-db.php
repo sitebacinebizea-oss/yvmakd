@@ -39,8 +39,19 @@ echo 'DB_PASSWORD طولها = ' . strlen(DB_PASSWORD) . ' — معاينة: <co
 
 $port = (int) DB_PORT;
 
+echo '<h2>0) امتدادات PHP</h2><div class="box">';
+echo 'mysqli: ' . (extension_loaded('mysqli') ? '<span class="ok">مفعّل</span>' : '<span class="bad">غير مفعّل — هذا سبب خطأ Call to undefined function mysqli_connect()</span>') . '<br>';
+echo 'pdo_mysql: ' . (extension_loaded('pdo_mysql') ? '<span class="ok">مفعّل</span>' : '<span class="bad">غير مفعّل</span>');
+echo '</div>';
+
 // 1) mysqli (نفس أسلوب functions.php: اتصال ثم USE)
 echo '<h2>1) mysqli</h2>';
+if (!extension_loaded('mysqli')) {
+    echo '<p class="bad">تخطّي الاختبار: الامتداد <code>mysqli</code> غير موجود على هذا السيرفر.</p>';
+    echo '<p>على Railway: أضف في خدمة التطبيق متغير البيئة <code>NIXPACKS_PHP_EXTENSIONS</code> = <code>mysqli,pdo_mysql</code> ثم أعد النشر، أو ارفع المشروع بعد تحديث <code>composer.json</code> (تمت إضافة ext-mysqli و ext-pdo_mysql).</p>';
+} elseif (!function_exists('mysqli_connect')) {
+    echo '<p class="bad">الامتداد مفعّل لكن الدالة غير متوفرة — تحقق من إعداد PHP.</p>';
+} else {
 $mysqli = @mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, '', $port);
 if (!$mysqli) {
     echo '<p class="bad">فشل: <code>' . htmlspecialchars(mysqli_connect_error()) . '</code></p>';
@@ -58,6 +69,7 @@ if (!$mysqli) {
         }
     }
     mysqli_close($mysqli);
+}
 }
 
 // 2) PDO (نفس أسلوب classes/db.php)
