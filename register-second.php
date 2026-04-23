@@ -1,6 +1,6 @@
 <?php
 
-session_start();
+require_once __DIR__ . '/includes/bootstrap_client_session.php';
 
 // 🔹 تجهيز النظام
 require_once 'dashboard/init.php';
